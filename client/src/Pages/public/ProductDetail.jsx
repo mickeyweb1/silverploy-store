@@ -49,7 +49,7 @@ export default function ProductDetail() {
   };
 
   const variantLabel = product.category === 'Shrink Wrapper' 
-    ? `${selectedVariant.weightKg} kg` 
+    ? `${selectedVariant.weightKg} kg (${selectedVariant.rollType} Roll)` 
     : (selectedVariant.size || selectedVariant.name);
 
   return (
@@ -77,7 +77,7 @@ export default function ProductDetail() {
               <div className="flex flex-wrap gap-2">
                 {product.variants.map((variant) => {
                   const label = product.category === 'Shrink Wrapper' 
-                    ? `${variant.weightKg} kg` 
+                    ? `${variant.weightKg} kg (${variant.rollType})` 
                     : (variant.size || variant.name);
                   
                   return (
