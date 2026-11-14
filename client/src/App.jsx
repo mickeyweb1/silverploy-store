@@ -6,7 +6,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages
 import Products from './Pages/public/Products';
-import ProductDetail from './Pages/public/src/pages/public/ProductDetail';
+import ProductDetail from './Pages/public/ProductDetail';
 
 const Cart = () => <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center text-gray-500">Your shopping cart is currently empty.</div>;
 const Login = () => (
