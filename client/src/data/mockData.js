@@ -20,25 +20,29 @@ export const products = [
   {
     id: 2,
     category: 'Shrink Wrapper',
-    name: '18 x 0.18', // Title of the box
-    description: 'High-quality industrial shrink wrap. Price calculated by weight (₦2,750/kg).',
+    name: '18 x 0.18', 
+    description: 'High-quality industrial shrink wrap. Price calculated by exact roll weight (₦2,750/kg).',
     basePricePerKg: 2750,
     image: 'https://placehold.co/400x400/f3f4f6/4b5563?text=18+x+0.18',
+    // Each variant is a specific, individual roll with its own weight and stock
     variants: [
-      { id: 'v1', name: 'Single Roll', weightKg: 19.6, stock: 100 },
-      { id: 'v2', name: 'Double Roll', weightKg: 39.2, stock: 50 }
+      { id: 'v1', weightKg: 19.8, stock: 1 },
+      { id: 'v2', weightKg: 25.9, stock: 1 },
+      { id: 'v3', weightKg: 30.4, stock: 1 },
+      { id: 'v4', weightKg: 22.1, stock: 1 }
     ]
   },
   {
     id: 3,
     category: 'Shrink Wrapper',
-    name: '11 x 0.18', // Another box title
-    description: 'High-quality industrial shrink wrap. Price calculated by weight (₦2,750/kg).',
+    name: '11 x 0.18', 
+    description: 'High-quality industrial shrink wrap. Price calculated by exact roll weight (₦2,750/kg).',
     basePricePerKg: 2750,
     image: 'https://placehold.co/400x400/fef3c7/b45309?text=11+x+0.18',
     variants: [
-      { id: 'v1', name: 'Single Roll', weightKg: 17.6, stock: 120 },
-      { id: 'v2', name: 'Double Roll', weightKg: 35.2, stock: 60 }
+      { id: 'v1', weightKg: 17.6, stock: 1 },
+      { id: 'v2', weightKg: 15.5, stock: 1 },
+      { id: 'v3', weightKg: 29.6, stock: 1 }
     ]
   },
   {
