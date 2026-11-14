@@ -6,6 +6,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 import Products from './pages/public/Products';
 import ProductDetail from './pages/public/ProductDetail';
+import { CartProvider } from './context/CartContext';
 import Login from './pages/auth/Login';
 
 // Context & Components
@@ -22,6 +23,7 @@ const WorkerOverview = () => <div className="bg-white p-6 rounded-xl shadow-sm b
 function App() {
   return (
     <AuthProvider>
+      <CartProvider>
       <Router>
         <Routes>
           {/* Public E-commerce Routes */}
@@ -68,6 +70,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

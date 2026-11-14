@@ -1,10 +1,11 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 const categories = ['All', 'Pure Water', 'Bottles', 'Packing Bags', 'Shrink Wrapper'];
 
 export default function PublicLayout() {
   const location = useLocation();
-  const cartCount = 0; // Will connect to CartContext in a later phase
+    const { cartCount } = useCart();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -31,7 +32,7 @@ export default function PublicLayout() {
               placeholder="Search pure water, bottles, bags..."
               className="flex-1 outline-none text-sm bg-transparent text-gray-700 placeholder-gray-400"
             />
-            <button className="h-9 w-9 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0 hover:bg-slate-800 transition">
+            <button className="h-9 w-9 rounded-full bg-slate-PublicLayout900 text-white flex items-center justify-center shrink-0 hover:bg-slate-800 transition">
               <SearchIcon />
             </button>
           </div>

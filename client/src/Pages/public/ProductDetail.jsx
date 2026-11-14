@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { products } from '../../data/mockData';
+import { useCart } from '../../context/CartContext';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
+    const { addToCart } = useCart();
   const navigate = useNavigate();
   
   const product = products.find(p => p.id === parseInt(id));
@@ -41,11 +43,8 @@ export default function ProductDetail() {
       alert(`Sorry, only ${availableStock} available in stock.`);
       return;
     }
-    const variantName = product.category === 'Shrink Wrapper' 
-      ? `${selectedVariant.weightKg} kg roll` 
-      : (selectedVariant.size || selectedVariant.name);
-      
-    alert(`Added ${quantity} x ${product.name} [${variantName}] to cart!\nTotal: ₦${totalPrice.toLocaleString()}`);
+    addToCart(product, selectedVariant, quantity);
+    alert('Item added to cart successfully!');
   };
 
   const variantLabel = product.category === 'Shrink Wrapper' 
