@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
+import ProductManager from './Pages/dashboard/admin/dashboard';
 
 // Pages
 import Products from './pages/public/Products';
@@ -43,8 +44,8 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<AdminOverview />} />
-              <Route path="ecommerce" element={<div className="p-6 bg-white rounded-xl shadow-sm">E-commerce Manager</div>} />
-              <Route path="stock" element={<div className="p-6 bg-white rounded-xl shadow-sm">Stock & Finance Manager</div>} />
+               <Route path="ecommerce" element={<ProductManager />} /> 
+                        <Route path="stock" element={<div className="p-6 bg-white rounded-xl shadow-sm">Stock & Finance Manager</div>} />
             </Route>
 
             <Route path="/dashboard/secretary" element={
