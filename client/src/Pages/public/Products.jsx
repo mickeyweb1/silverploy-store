@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { products } from '../../data/mockData';
 
@@ -5,6 +6,12 @@ const categories = ['All', 'Pure Water', 'Bottles', 'Packing Bags', 'Shrink Wrap
 
 export default function Products() {
   const navigate = useNavigate();
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  // Filter products based on selected category
+  const filteredProducts = activeCategory === 'All' 
+    ? products 
+    : products.filter(p => p.category === activeCategory);
 
   const handleCardClick = (productId) => {
     navigate(`/product/${productId}`);
@@ -24,13 +31,16 @@ export default function Products() {
         </div>
       </div>
 
+      {/* Category Filter Tabs (NOW WORKING) */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {categories.map((cat) => (
           <button
             key={cat}
-            onClick={() => {/* Add category filter logic here if needed */}}
+            onClick={() => setActiveCategory(cat)}
             className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-              cat === 'All' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              activeCategory === cat 
+                ? 'bg-slate-900 text-white shadow-md' 
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             {cat}
@@ -39,7 +49,7 @@ export default function Products() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <div 
             key={product.id} 
             className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
@@ -64,7 +74,7 @@ export default function Products() {
                     onClick={() => handleCardClick(product.id)}
                     className="w-full py-2.5 rounded-xl font-semibold text-sm bg-slate-900 text-white hover:bg-blue-600 transition-colors"
                   >
-                    View Weight Options
+                    View Available Rolls (by Weight)
                   </button>
                 ) : (
                   <div>
