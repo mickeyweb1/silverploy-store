@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { products } from '../../../../../data/mockData';
+import { products } from '../../data/mockData';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -42,14 +42,14 @@ export default function ProductDetail() {
       return;
     }
     const variantName = product.category === 'Shrink Wrapper' 
-      ? `${selectedVariant.name} (${selectedVariant.weightKg}kg)` 
+      ? `${selectedVariant.weightKg} kg roll` 
       : (selectedVariant.size || selectedVariant.name);
       
     alert(`Added ${quantity} x ${product.name} [${variantName}] to cart!\nTotal: ₦${totalPrice.toLocaleString()}`);
   };
 
   const variantLabel = product.category === 'Shrink Wrapper' 
-    ? `${selectedVariant.name} (${selectedVariant.weightKg}kg)` 
+    ? `${selectedVariant.weightKg} kg` 
     : (selectedVariant.size || selectedVariant.name);
 
   return (
@@ -71,11 +71,13 @@ export default function ProductDetail() {
 
             {/* Variant Selector */}
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Select Option:</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                {product.category === 'Shrink Wrapper' ? 'Available Rolls (by Weight):' : 'Select Size:'}
+              </label>
               <div className="flex flex-wrap gap-2">
                 {product.variants.map((variant) => {
                   const label = product.category === 'Shrink Wrapper' 
-                    ? `${variant.name} (${variant.weightKg}kg)` 
+                    ? `${variant.weightKg} kg` 
                     : (variant.size || variant.name);
                   
                   return (
@@ -88,7 +90,7 @@ export default function ProductDetail() {
                           : 'bg-white text-gray-700 border-gray-200 hover:border-slate-400'
                       }`}
                     >
-                      {label}
+                      {label} {variant.stock === 1 && product.category === 'Shrink Wrapper' ? '(1 left)' : ''}
                     </button>
                   );
                 })}
@@ -108,8 +110,8 @@ export default function ProductDetail() {
               )}
               <div className="flex justify-between items-center mt-2 pt-2 border-t border-blue-200">
                 <span className="text-sm text-blue-800">Available Stock:</span>
-                <span className={`font-bold ${availableStock > 20 ? 'text-green-600' : 'text-red-600'}`}>
-                  {availableStock} units
+                <span className={`font-bold ${availableStock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {availableStock} unit(s)
                 </span>
               </div>
               <div className="flex justify-between items-center mt-2 pt-2 border-t border-blue-200">
