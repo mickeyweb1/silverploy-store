@@ -5,10 +5,10 @@ import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages (FIXED IMPORTS HERE)
-import ProductManager from './pages/dashboard/admin/ProductManager'; 
+import ProductManager from './Pages/dashboard/admin/dashboard.jsx';
 import OrderManager from './Pages/dashboard/admin/OrderManager';
 import Products from './pages/public/Products';
-import ProductDetail from './pages/public/ProductDetail';
+import ProductDetail from './Pages/public/ProductDetail.jsx';
 import Cart from './pages/public/Cart';
 import Login from './pages/auth/Login';
 
