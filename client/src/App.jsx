@@ -6,7 +6,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages (FIXED IMPORTS HERE)
 import ProductManager from './pages/dashboard/admin/ProductManager'; 
-import OrderManager from './pages/dashboard/admin/OrderManager';
+import OrderManager from './Pages/dashboard/admin/OrderManager';
 import Products from './pages/public/Products';
 import ProductDetail from './pages/public/ProductDetail';
 import Cart from './pages/public/Cart';
