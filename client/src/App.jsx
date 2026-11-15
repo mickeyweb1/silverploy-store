@@ -7,10 +7,10 @@ import DashboardLayout from './layouts/DashboardLayout';
 // Pages (FIXED IMPORTS HERE)
 import ProductManager from './Pages/dashboard/admin/dashboard.jsx';
 import OrderManager from './Pages/dashboard/admin/OrderManager';
-import Products from './pages/public/Products';
+import Products from './Pages/public/Products.jsx';
 import ProductDetail from './Pages/public/ProductDetail.jsx';
-import Cart from './pages/public/Cart';
-import Login from './pages/auth/Login';
+import Cart from './Pages/public/Cart.jsx';
+import Login from './Pages/auth/Login.jsx';
 
 // Context & Components
 import { AuthProvider } from './context/AuthContext';
