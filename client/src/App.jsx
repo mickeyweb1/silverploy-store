@@ -3,17 +3,18 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
-import ProductManager from './Pages/dashboard/admin/dashboard';
 
-// Pages
+// Pages (FIXED IMPORTS HERE)
+import ProductManager from './pages/dashboard/admin/ProductManager'; 
+import OrderManager from './pages/dashboard/admin/OrderManager';
 import Products from './pages/public/Products';
 import ProductDetail from './pages/public/ProductDetail';
-import Cart from './pages/public/Cart'; // <-- NEW IMPORT
+import Cart from './pages/public/Cart';
 import Login from './pages/auth/Login';
 
 // Context & Components
 import { AuthProvider } from './context/AuthContext';
-import { CartProvider } from './context/CartContext'; // <-- Ensure this is imported
+import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Placeholder Pages (Dashboard)
@@ -44,8 +45,9 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<AdminOverview />} />
-               <Route path="ecommerce" element={<ProductManager />} /> 
-                        <Route path="stock" element={<div className="p-6 bg-white rounded-xl shadow-sm">Stock & Finance Manager</div>} />
+              <Route path="ecommerce" element={<ProductManager />} />
+              <Route path="orders" element={<OrderManager />} />
+              <Route path="stock" element={<div className="p-6 bg-white rounded-xl shadow-sm">Stock & Finance Manager</div>} />
             </Route>
 
             <Route path="/dashboard/secretary" element={
@@ -54,6 +56,7 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<SecretaryOverview />} />
+              <Route path="orders" element={<OrderManager />} />
               <Route path="records" element={<div className="p-6 bg-white rounded-xl shadow-sm">Record Sales & Expenses</div>} />
               <Route path="payroll" element={<div className="p-6 bg-white rounded-xl shadow-sm">Worker Payroll</div>} />
             </Route>

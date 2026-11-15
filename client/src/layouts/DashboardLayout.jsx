@@ -8,19 +8,21 @@ export default function DashboardLayout({ role = 'admin' }) {
   const navLinks = {
     admin: [
       { name: 'Overview', path: '/dashboard/admin', icon: <OverviewIcon /> },
+      { name: 'Orders', path: '/dashboard/admin/orders', icon: <DocumentIcon /> },
       { name: 'E-commerce', path: '/dashboard/admin/ecommerce', icon: <ShopIcon /> },
       { name: 'Stock & Finance', path: '/dashboard/admin/stock', icon: <ChartIcon /> },
     ],
     secretary: [
       { name: 'Overview', path: '/dashboard/secretary', icon: <OverviewIcon /> },
+      { name: 'Orders', path: '/dashboard/secretary/orders', icon: <DocumentIcon /> },
       { name: 'Sales & Expenses', path: '/dashboard/secretary/records', icon: <DocumentIcon /> },
       { name: 'Payroll', path: '/dashboard/secretary/payroll', icon: <UsersIcon /> },
     ],
-    worker: [
+    worker: [ // <-- ADDED THIS BACK
       { name: 'My Dashboard', path: '/dashboard/worker', icon: <OverviewIcon /> },
       { name: 'Log Production', path: '/dashboard/worker/production', icon: <ClipboardIcon /> },
     ]
-  };
+  }; // <-- ADDED CLOSING BRACE HERE
 
   const currentLinks = navLinks[role] || navLinks.admin;
 

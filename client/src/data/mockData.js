@@ -91,3 +91,39 @@ export const productionLogs = [
 export const payroll = [
   { id: 'PAY-001', worker: 'John Worker', month: 'November 2026', baseSalary: 45000, bonus: 5000, deductions: 0, netPay: 50000, status: 'Pending' }
 ];
+
+// Add this to the bottom of src/data/mockData.js
+
+export const orders = [
+  {
+    id: 'ORD-1001',
+    date: '2026-11-14',
+    customer: { name: 'Emeka Johnson', phone: '08012345678', address: '14 Allen Avenue, Ikeja, Lagos' },
+    items: [
+      { name: '18 x 0.18', variant: '19.8kg (Single Roll)', quantity: 2, price: 54450 }
+    ],
+    total: 108900,
+    status: 'Pending'
+  },
+  {
+    id: 'ORD-1002',
+    date: '2026-11-13',
+    customer: { name: 'Chioma Adeleke', phone: '08098765432', address: '22 Admiralty Way, Lekki, Lagos' },
+    items: [
+      { name: 'Premium Pure Water (50cl)', variant: 'Pack of 20', quantity: 50, price: 1500 },
+      { name: 'Empty PET Bottles', variant: '500ml', quantity: 10, price: 2000 }
+    ],
+    total: 95000,
+    status: 'Processing'
+  },
+  {
+    id: 'ORD-1003',
+    date: '2026-11-12',
+    customer: { name: 'Tunde Bakare', phone: '07033334444', address: '5 Oba Akran Avenue, Ikeja, Lagos' },
+    items: [
+      { name: 'Heavy Duty Packing Bags', variant: '5.0', quantity: 100, price: 1750 }
+    ],
+    total: 175000,
+    status: 'Delivered'
+  }
+];
