@@ -128,6 +128,15 @@ export const orders = [
   }
 ];
 
+// Add this to the bottom of src/data/mockData.js
+
+export const defaultSettings = {
+  shrinkWrapperPricePerKg: 2750,
+  pureWaterPricePerBag: 1500,
+  packingBagsPricePerUnit: 35,
+  bottlesPricePerUnit: 50
+};
+
 // Add or replace these in src/data/mockData.js
 
 export const transactions = [
