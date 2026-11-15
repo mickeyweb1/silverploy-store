@@ -127,3 +127,19 @@ export const orders = [
     status: 'Delivered'
   }
 ];
+
+// Add or replace these in src/data/mockData.js
+
+export const transactions = [
+  { id: 'TXN-001', date: '2026-11-14', type: 'Sale', description: 'Walk-in Sale: 50 packs of 50cl Water', amount: 75000, status: 'Completed' },
+  { id: 'TXN-002', date: '2026-11-14', type: 'Expense', description: 'Fuel for Delivery Truck', amount: 15000, status: 'Approved' },
+  { id: 'TXN-003', date: '2026-11-13', type: 'Sale', description: 'Walk-in Sale: 20 Heavy Duty Packing Bags', amount: 35000, status: 'Completed' },
+  { id: 'TXN-004', date: '2026-11-12', type: 'Expense', description: 'Generator Maintenance', amount: 25000, status: 'Approved' },
+  { id: 'TXN-005', date: '2026-11-10', type: 'Expense', description: 'Purchase of Raw Plastic Preforms', amount: 120000, status: 'Approved' }
+];
+
+export const payrollRecords = [
+  { id: 'PAY-001', worker: 'John Worker', month: 'November 2026', baseSalary: 45000, bonus: 5000, deductions: 0, netPay: 50000, status: 'Pending' },
+  { id: 'PAY-002', worker: 'Jane Worker', month: 'November 2026', baseSalary: 45000, bonus: 2000, deductions: 0, netPay: 47000, status: 'Paid' },
+  { id: 'PAY-003', worker: 'Mike Worker', month: 'November 2026', baseSalary: 40000, bonus: 0, deductions: 2000, netPay: 38000, status: 'Paid' }
+];

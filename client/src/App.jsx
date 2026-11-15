@@ -10,6 +10,7 @@ import OrderManager from './Pages/dashboard/admin/OrderManager';
 import Products from './Pages/public/Products.jsx';
 import ProductDetail from './Pages/public/ProductDetail.jsx';
 import Cart from './Pages/public/Cart.jsx';
+import FinancialRecords from './Pages/dashboard/secretary/FinancialRecords.jsx';
 import Login from './Pages/auth/Login.jsx';
 
 // Context & Components
@@ -57,8 +58,8 @@ function App() {
             }>
               <Route index element={<SecretaryOverview />} />
               <Route path="orders" element={<OrderManager />} />
-              <Route path="records" element={<div className="p-6 bg-white rounded-xl shadow-sm">Record Sales & Expenses</div>} />
-              <Route path="payroll" element={<div className="p-6 bg-white rounded-xl shadow-sm">Worker Payroll</div>} />
+              <Route path="records" element={<FinancialRecords />} />
+              <Route path="payroll" element={<FinancialRecords />} />
             </Route>
 
             <Route path="/dashboard/worker" element={
