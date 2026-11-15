@@ -6,6 +6,8 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages (FIXED IMPORTS HERE)
 import ProductManager from './Pages/dashboard/admin/dashboard.jsx';
+import { SettingsProvider } from './context/SettingsContext';
+import Settings from './pages/dashboard/admin/Settings';
 import OrderManager from './Pages/dashboard/admin/OrderManager';
 import Products from './Pages/public/Products.jsx';
 import ProductDetail from './Pages/public/ProductDetail.jsx';
@@ -27,6 +29,7 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
+        <SettingsProvider>
         <Router>
           <Routes>
             {/* Public E-commerce Routes */}
@@ -48,6 +51,7 @@ function App() {
               <Route index element={<AdminOverview />} />
               <Route path="ecommerce" element={<ProductManager />} />
               <Route path="orders" element={<OrderManager />} />
+                              <Route path="settings" element={<Settings />} /> 
               <Route path="stock" element={<div className="p-6 bg-white rounded-xl shadow-sm">Stock & Finance Manager</div>} />
             </Route>
 
@@ -75,6 +79,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
+        </SettingsProvider>
       </CartProvider>
     </AuthProvider>
   );
