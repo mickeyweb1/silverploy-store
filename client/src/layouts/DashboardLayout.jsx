@@ -10,6 +10,7 @@ export default function DashboardLayout({ role = 'admin' }) {
       { name: 'Overview', path: '/dashboard/admin', icon: <OverviewIcon /> },
       { name: 'Orders', path: '/dashboard/admin/orders', icon: <DocumentIcon /> },
       { name: 'E-commerce', path: '/dashboard/admin/ecommerce', icon: <ShopIcon /> },
+      { name: 'Settings', path: '/dashboard/admin/settings', icon: <ChartIcon /> }, // <-- ADD THIS
       { name: 'Stock & Finance', path: '/dashboard/admin/stock', icon: <ChartIcon /> },
     ],
     secretary: [
