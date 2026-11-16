@@ -10,15 +10,13 @@ export const products = [
   {
     id: 1,
     category: 'Pure Water',
-    name: 'Premium Pure Water (50cl)',
+    name: 'Real Water', // <-- Changed from 'Premium Pure Water (50cl)'
     description: 'Nafdac approved, crisp and refreshing purified drinking water.',
-    image: 'https://placehold.co/400x400/e0f2fe/0369a1?text=Pure+Water',
+    image: 'https://placehold.co/400x400/e0f2fe/0369a1?text=Real+Water',
     variants: [
       { id: 'v1', name: 'Pack of 20', price: 1500, stock: 450 }
     ]
   },
-// Find the Shrink Wrapper products in mockData.js and update them like this:
-
   {
     id: 2,
     category: 'Shrink Wrapper',
