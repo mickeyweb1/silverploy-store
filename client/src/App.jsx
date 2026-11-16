@@ -8,6 +8,7 @@ import {
 // Layouts
 import PublicLayout from "./layouts/PublicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+import EcommerceManager from "./Pages/dashboard/admin/EcommerceManager.jsx";
 
 // Pages (FIXED IMPORTS HERE)
 import ProductManager from "./Pages/dashboard/admin/dashboard.jsx";
@@ -70,42 +71,29 @@ function App() {
               {/* Authentication Routes */}
               <Route path="/login" element={<Login />} />
 
-              {/* Protected Dashboard Routes */}
-              <Route
-                path="/dashboard/admin"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <DashboardLayout role="admin" />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminOverview />} />
-                <Route path="ecommerce" element={<ProductManager />} />
-                <Route path="orders" element={<OrderManager />} />
-                <Route path="settings" element={<Settings />} />
-                <Route
-                  path="stock"
-                  element={
-                    <div className="p-6 bg-white rounded-xl shadow-sm">
-                      Stock & Finance Manager
-                    </div>
-                  }
-                />
-              </Route>
+                      <Route path="/dashboard/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <DashboardLayout role="admin" />
+          </ProtectedRoute>
+        }>
+          <Route index element={<AdminOverview />} />
+          <Route path="ecommerce" element={<EcommerceManager />} /> {/* <-- CHANGED HERE */}
+          <Route path="orders" element={<OrderManager />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="stock" element={<div className="p-6 bg-white rounded-xl shadow-sm">Stock & Finance Manager</div>} />
+        </Route>
 
-              <Route
-                path="/dashboard/secretary"
-                element={
-                  <ProtectedRoute requiredRole="secretary">
-                    <DashboardLayout role="secretary" />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<SecretaryOverview />} />
-                <Route path="orders" element={<OrderManager />} />
-                <Route path="records" element={<FinancialRecords />} />
-                <Route path="payroll" element={<FinancialRecords />} />
-              </Route>
+        <Route path="/dashboard/secretary" element={
+          <ProtectedRoute requiredRole="secretary">
+            <DashboardLayout role="secretary" />
+          </ProtectedRoute>
+        }>
+          <Route index element={<SecretaryOverview />} />
+          <Route path="orders" element={<OrderManager />} />
+          <Route path="ecommerce" element={<EcommerceManager />} /> {/* <-- ADDED FOR SECRETARY */}
+          <Route path="records" element={<FinancialRecords />} />
+          <Route path="payroll" element={<FinancialRecords />} />
+        </Route>
 
               <Route
                 path="/dashboard/worker"
