@@ -7,7 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 // Pages (FIXED IMPORTS HERE)
 import ProductManager from './Pages/dashboard/admin/dashboard.jsx';
 import { SettingsProvider } from './context/SettingsContext';
-import Settings from './pages/dashboard/admin/Settings';
+import Settings from './Pages/dashboard/admin/Settings.jsx';
 import OrderManager from './Pages/dashboard/admin/OrderManager';
 import Products from './Pages/public/Products.jsx';
 import ProductDetail from './Pages/public/ProductDetail.jsx';
