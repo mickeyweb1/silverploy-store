@@ -1,282 +1,400 @@
-import { useState } from 'react';
-import { products as initialProducts } from '../../../data/mockData';
+import { useState, useEffect, useMemo } from 'react';
+import { useProducts } from '../../../context/ProductContext';
 import { useSettings } from '../../../context/SettingsContext';
+import { LOW_STOCK_THRESHOLD } from '../../../config';
+import {
+  CATEGORIES, formatNaira, getPriceDisplay, getUnitPrice, getVariantLabel, isShrink, stockColor,
+} from '../../../utils/products';
 
-export default function EcommerceManager() {
-  const { settings } = useSettings();
-  const [products, setProducts] = useState(initialProducts);
-  
-  // Modal States
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [modalStep, setModalStep] = useState('select'); // 'select' or 'details'
-  const [isNewSize, setIsNewSize] = useState(false);
-  
-  // Form States
-  const [newSizeName, setNewSizeName] = useState('');
-  const [addFormData, setAddFormData] = useState({
-    weight: '', rollType: 'Single', quantity: ''
+const PER_VARIANT = ['Bottles', 'Packing Bags']; // these get one card per size
+const inputCls = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none';
+const newId = () => `v${Date.now()}`;
+
+const settingsPrice = (category, s = {}) =>
+  ({
+    'Pure Water': s.pureWaterPricePerBag,
+    Bottles: s.bottlesPricePerUnit,
+    'Packing Bags': s.packingBagsPricePerUnit,
+  }[category] ?? 0);
+
+const buildCards = (products) =>
+  products.flatMap((p) => {
+    if (PER_VARIANT.includes(p.category)) {
+      return p.variants.map((v) => ({
+        key: `${p.id}-${v.id}`,
+        product: p,
+        variants: [v],
+        title: `${getVariantLabel(p, v)} ${p.category === 'Bottles' ? 'PET bottle' : 'packing bags'}`,
+        stock: v.stock || 0,
+        unit: 'units',
+        price: formatNaira(getUnitPrice(p, v)),
+      }));
+    }
+    const stock = p.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+    return [{
+      key: String(p.id),
+      product: p,
+      variants: p.variants,
+      title: p.name,
+      stock,
+      unit: isShrink(p) ? 'roll(s)' : 'bags',
+      price: getPriceDisplay(p),
+    }];
   });
 
-  const handleOpenModal = (product) => {
-    setSelectedProduct(product);
-    setModalStep('select');
-    setIsNewSize(false);
-    setNewSizeName('');
-    setAddFormData({ weight: '', rollType: 'Single', quantity: '' });
-  };
+export default function EcommerceManager() {
+  const { products } = useProducts();
+  const [tab, setTab] = useState('All');
+  const [modal, setModal] = useState(null); // { type: 'add' | 'edit', productId, variantId?, variantIds? }
+  const [notice, setNotice] = useState('');
 
-  const handleCloseModal = () => {
-    setSelectedProduct(null);
-    setModalStep('select');
-  };
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(''), 4000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
-  // Auto-calculate price based on global settings
-  const calculateEstimate = () => {
-    if (!selectedProduct) return 0;
-    const qty = parseInt(addFormData.quantity) || 0;
-    const weight = parseFloat(addFormData.weight) || 0;
+  const cards = useMemo(
+    () => buildCards(products).filter((c) => tab === 'All' || c.product.category === tab),
+    [products, tab]
+  );
 
-    if (selectedProduct.category === 'Shrink Wrapper') {
-      return weight * settings.shrinkWrapperPricePerKg;
-    }
-    if (selectedProduct.category === 'Pure Water') {
-      return qty * settings.pureWaterPricePerBag;
-    }
-    if (selectedProduct.category === 'Bottles') {
-      return qty * settings.bottlesPricePerUnit;
-    }
-    if (selectedProduct.category === 'Packing Bags') {
-      return qty * settings.packingBagsPricePerUnit;
-    }
-    return 0;
-  };
-
-  const handleSaveGoods = () => {
-    if (!selectedProduct) return;
-
-    // In a real app, this would send data to the backend. 
-    // For now, we update the local state to show it working.
-    const updatedProducts = products.map(p => {
-      if (p.id === selectedProduct.id) {
-        if (isNewSize) {
-          // Create a brand new variant/size
-          const newVariant = {
-            id: `v${Date.now()}`,
-            size: newSizeName,
-            weightKg: selectedProduct.category === 'Shrink Wrapper' ? parseFloat(addFormData.weight) : undefined,
-            rollType: selectedProduct.category === 'Shrink Wrapper' ? addFormData.rollType : undefined,
-            stock: parseInt(addFormData.quantity) || 1,
-            pricePerPack: calculateEstimate()
-          };
-          return { ...p, variants: [...p.variants, newVariant] };
-        } else {
-          // Add stock to existing variant
-          // (Simplified logic for demo: just adds to the first matching variant)
-          return p; 
-        }
-      }
-      return p;
-    });
-
-    setProducts(updatedProducts);
-    alert(`Successfully added stock to ${isNewSize ? newSizeName : 'existing size'}!`);
-    handleCloseModal();
-  };
+  const close = () => setModal(null);
+  const done = (msg) => { setNotice(msg); close(); };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">E-commerce Manager</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage stock, prices, and product listings exactly as customers see them.</p>
+        <h1 className="text-2xl font-bold text-gray-900">E-commerce manager</h1>
+        <p className="text-gray-500 text-sm mt-1">Manage stock and prices exactly as customers see them.</p>
       </div>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => {
-          
-          // Bottles & Packing Bags (Separate cards per size)
-          if (product.category === 'Bottles' || product.category === 'Packing Bags') {
-            return product.variants.map((variant) => (
-              <div key={`${product.id}-${variant.id}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col relative">
-                <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-slate-700 shadow-sm z-10">
-                  {product.category}
-                </span>
-                <div className="relative aspect-square bg-gray-50 overflow-hidden">
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="font-bold text-lg text-gray-900 mb-1">
-                    {variant.size} {product.category === 'Bottles' ? 'PET Bottle' : 'Packing Bags'}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-4">{variant.stock} units remaining</p>
-                  <div className="mt-auto grid grid-cols-2 gap-2">
-                    <button className="py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Edit</button>
-                    <button onClick={() => handleOpenModal({...product, activeVariant: variant})} className="py-2 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition">Add Goods</button>
-                  </div>
-                </div>
-              </div>
-            ));
-          }
+      {notice && (
+        <p role="status" className="bg-green-50 text-green-800 text-sm border border-green-100 rounded-lg px-4 py-3">
+          {notice}
+        </p>
+      )}
 
-          // Pure Water
-          if (product.category === 'Pure Water') {
-            const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
-            return (
-              <div key={product.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col relative">
-                <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-slate-700 shadow-sm z-10">Pure Water</span>
-                <div className="relative aspect-square bg-gray-50 overflow-hidden">
-                  <img src={product.image} alt="Real Water" className="w-full h-full object-cover" />
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="font-bold text-lg text-gray-900 mb-1">Real Water</h3>
-                  <p className="text-sm text-gray-500 mb-4">{totalStock} bags remaining</p>
-                  <div className="mt-auto grid grid-cols-2 gap-2">
-                    <button className="py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Edit</button>
-                    <button onClick={() => handleOpenModal(product)} className="py-2 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition">Add Goods</button>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-
-          // Shrink Wrapper
-          if (product.category === 'Shrink Wrapper') {
-            return (
-              <div key={product.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col relative">
-                <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-slate-700 shadow-sm z-10">Shrink Wrapper</span>
-                <div className="relative aspect-square bg-gray-50 overflow-hidden">
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="font-bold text-lg text-gray-900 mb-1">{product.name}</h3>
-                  <p className="text-xs text-gray-500 mb-4">{product.variants.length} roll(s) in stock</p>
-                  <div className="mt-auto grid grid-cols-2 gap-2">
-                    <button className="py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Edit</button>
-                    <button onClick={() => handleOpenModal(product)} className="py-2 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition">Add Goods</button>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-          return null;
-        })}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {['All', ...CATEGORIES].map((c) => (
+          <button
+            key={c}
+            onClick={() => setTab(c)}
+            aria-pressed={tab === c}
+            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition ${
+              tab === c ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-gray-700 border-gray-200 hover:border-slate-400'
+            }`}
+          >
+            {c}
+          </button>
+        ))}
       </div>
 
-      {/* ================= MODAL ================= */}
-      {selectedProduct && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-            
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h2 className="text-lg font-bold text-gray-900">
-                {modalStep === 'select' ? 'Select Size' : (isNewSize ? 'Create New Size' : 'Add Stock')}
-              </h2>
-              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" /></svg>
-              </button>
-            </div>
-            
-            <div className="p-6">
-              {/* STEP 1: SELECT SIZE */}
-              {modalStep === 'select' && (
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600 mb-4">Choose an existing size to add stock, or create a new one.</p>
-                  
-                  {/* Existing Sizes */}
-                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                    {selectedProduct.variants.map((variant) => {
-                      const label = variant.size || variant.name;
-                      return (
-                        <button
-                          key={variant.id}
-                          onClick={() => { setIsNewSize(false); setModalStep('details'); }}
-                          className="p-3 border border-gray-200 rounded-lg text-sm font-medium hover:bg-blue-50 hover:border-blue-300 transition text-left"
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Create New Size Button */}
-                  <button
-                    onClick={() => { setIsNewSize(true); setModalStep('details'); }}
-                    className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-sm font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition flex items-center justify-center gap-2"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeLinecap="round" /></svg>
-                    Create New Size
-                  </button>
-                </div>
-              )}
-
-              {/* STEP 2: ENTER DETAILS */}
-              {modalStep === 'details' && (
-                <div className="space-y-4">
-                  {/* New Size Name Input */}
-                  {isNewSize && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">New Size Name</label>
-                      <input 
-                        type="text" 
-                        value={newSizeName} 
-                        onChange={(e) => setNewSizeName(e.target.value)} 
-                        placeholder={selectedProduct.category === 'Shrink Wrapper' ? "e.g. 15 x 0.18" : "e.g. 2.8 or 800ml"}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                      />
-                    </div>
-                  )}
-
-                  {/* Shrink Wrapper Inputs */}
-                  {selectedProduct.category === 'Shrink Wrapper' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Weight (KG)</label>
-                        <input type="number" value={addFormData.weight} onChange={(e) => setAddFormData({...addFormData, weight: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="e.g. 20.8" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Roll Type</label>
-                        <select value={addFormData.rollType} onChange={(e) => setAddFormData({...addFormData, rollType: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                          <option>Single</option>
-                          <option>Double</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Pure Water, Bottles, Packing Bags Inputs */}
-                  {(selectedProduct.category === 'Pure Water' || selectedProduct.category === 'Bottles' || selectedProduct.category === 'Packing Bags') && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Quantity to Add</label>
-                      <input type="number" value={addFormData.quantity} onChange={(e) => setAddFormData({...addFormData, quantity: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="How many?" />
-                    </div>
-                  )}
-
-                  {/* Auto-Calculated Price Display */}
-                  <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 border border-blue-100">
-                    Estimated Price per unit: <strong>₦{calculateEstimate().toLocaleString()}</strong> 
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer Buttons */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
-              {modalStep === 'details' && (
-                <button onClick={() => setModalStep('select')} className="flex-1 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 text-gray-700">Back</button>
-              )}
-              <button onClick={handleCloseModal} className="flex-1 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 text-gray-700">Cancel</button>
-              <button 
-                onClick={handleSaveGoods} 
-                disabled={modalStep === 'details' && isNewSize && !newSizeName}
-                className="flex-1 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {modalStep === 'select' ? 'Next' : 'Save Goods'}
-              </button>
-            </div>
-          </div>
+      {cards.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 p-10 text-center text-gray-500">No products in this category.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {cards.map((card) => (
+            <GoodsCard
+              key={card.key}
+              card={card}
+              onAdd={() =>
+                setModal({
+                  type: 'add',
+                  productId: card.product.id,
+                  variantId: PER_VARIANT.includes(card.product.category) ? card.variants[0].id : null,
+                })
+              }
+              onEdit={() =>
+                setModal({ type: 'edit', productId: card.product.id, variantIds: card.variants.map((v) => v.id) })
+              }
+            />
+          ))}
         </div>
       )}
+
+      {modal?.type === 'add' && <AddGoodsModal key={`${modal.productId}-${modal.variantId}`} {...modal} onClose={close} onDone={done} />}
+      {modal?.type === 'edit' && <EditModal key={modal.productId} {...modal} onClose={close} onDone={done} />}
     </div>
+  );
+}
+
+/* ---------------- Card ---------------- */
+
+function GoodsCard({ card, onAdd, onEdit }) {
+  const { product, title, stock, unit, price } = card;
+  const low = stock <= (isShrink(product) ? 1 : LOW_STOCK_THRESHOLD);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col relative">
+      <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full text-slate-700 shadow-sm z-10">
+        {product.category}
+      </span>
+      <div className="aspect-square bg-gray-50 overflow-hidden">
+        <img src={product.image} alt={title} loading="lazy" className="w-full h-full object-cover" />
+      </div>
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="font-bold text-lg text-gray-900 mb-1">{title}</h3>
+        <p className="text-sm text-gray-700">{price}</p>
+        <p className={`text-sm mt-1 mb-4 ${stockColor(low ? (stock === 0 ? 0 : 1) : 100)}`}>
+          {stock} {unit} remaining{stock === 0 ? ' · out of stock' : low ? ' · low' : ''}
+        </p>
+        <div className="mt-auto grid grid-cols-2 gap-2">
+          <button onClick={onEdit} className="py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Edit</button>
+          <button onClick={onAdd} className="py-2 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition">Add goods</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Modal shell ---------------- */
+
+function Modal({ title, onClose, children }) {
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+          <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const Field = ({ label, hint, children }) => (
+  <label className="block">
+    <span className="block text-sm font-medium text-gray-700 mb-1">{label}</span>
+    {children}
+    {hint && <span className="block text-xs text-gray-500 mt-1">{hint}</span>}
+  </label>
+);
+
+const Footer = ({ children }) => (
+  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">{children}</div>
+);
+const btnGhost = 'flex-1 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 text-gray-700';
+const btnPrimary = 'flex-1 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed';
+
+/* ---------------- Add goods ---------------- */
+
+function AddGoodsModal({ productId, variantId, onClose, onDone }) {
+  const { products, updateVariantStock, addVariant } = useProducts();
+  const { settings } = useSettings();
+  const product = products.find((p) => p.id === productId);
+
+  const shrink = product ? isShrink(product) : false;
+  const canChoose = !shrink && variantId == null && (product?.variants.length || 0) > 1;
+  const initial = shrink ? 'roll' : variantId ?? (product?.variants.length === 1 ? product.variants[0].id : null);
+
+  // target: null = choosing a size, 'new' = new size, 'roll' = shrink roll, otherwise an existing variant id
+  const [target, setTarget] = useState(initial);
+  const [form, setForm] = useState({ size: '', weight: '', rollType: 'Single', quantity: '' });
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  if (!product) return null;
+
+  const qty = parseInt(form.quantity, 10);
+  const weight = parseFloat(form.weight);
+  const existing = product.variants.find((v) => v.id === target);
+  const duplicateSize =
+    target === 'new' &&
+    product.variants.some((v) => String(getVariantLabel(product, v)).toLowerCase() === form.size.trim().toLowerCase());
+
+  const perKg = settings?.shrinkWrapperPricePerKg ?? product.basePricePerKg ?? 0;
+  const unitPrice = shrink ? Math.round((weight || 0) * perKg) : existing ? getUnitPrice(product, existing) : settingsPrice(product.category, settings);
+
+  const valid =
+    qty >= 1 &&
+    (target !== 'new' || (form.size.trim() && !duplicateSize)) &&
+    (target !== 'roll' || weight > 0);
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!valid) return;
+
+    if (target === 'roll') {
+      const match = product.variants.find((v) => v.weightKg === weight && v.rollType === form.rollType);
+      match
+        ? updateVariantStock(product.id, match.id, (match.stock || 0) + qty)
+        : addVariant(product.id, { id: newId(), rollType: form.rollType, weightKg: weight, stock: qty });
+      return onDone(`Added ${qty} ${form.rollType.toLowerCase()} roll(s) of ${weight}kg to ${product.name}.`);
+    }
+
+    if (target === 'new') {
+      addVariant(product.id, { id: newId(), size: form.size.trim(), pricePerPack: unitPrice, stock: qty });
+      return onDone(`Created size ${form.size.trim()} with ${qty} in stock.`);
+    }
+
+    updateVariantStock(product.id, existing.id, (existing.stock || 0) + qty);
+    onDone(`Added ${qty} to ${getVariantLabel(product, existing)}. New stock: ${(existing.stock || 0) + qty}.`);
+  };
+
+  // Step 1: choose a size
+  if (target === null) {
+    return (
+      <Modal title="Select size" onClose={onClose}>
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-600">Choose a size to add stock to, or create a new one.</p>
+          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+            {product.variants.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => setTarget(v.id)}
+                className="p-3 border border-gray-200 rounded-lg text-sm font-medium hover:bg-blue-50 hover:border-blue-300 transition text-left"
+              >
+                {getVariantLabel(product, v)}
+                <span className="block text-xs text-gray-500 font-normal">{v.stock || 0} in stock</span>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setTarget('new')}
+            className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-sm font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition"
+          >
+            + Create new size
+          </button>
+        </div>
+        <Footer><button onClick={onClose} className={btnGhost}>Cancel</button></Footer>
+      </Modal>
+    );
+  }
+
+  // Step 2: details
+  const title = target === 'new' ? 'Create new size' : shrink ? `Add rolls · ${product.name}` : 'Add stock';
+  return (
+    <Modal title={title} onClose={onClose}>
+      <form onSubmit={submit}>
+        <div className="p-6 space-y-4">
+          {existing && (
+            <p className="text-sm text-gray-600">
+              {product.name} · <strong>{getVariantLabel(product, existing)}</strong> · {existing.stock || 0} in stock now
+            </p>
+          )}
+
+          {target === 'new' && (
+            <Field label="New size name" hint={duplicateSize ? undefined : 'e.g. 2.8 or 800ml'}>
+              <input autoFocus value={form.size} onChange={set('size')} className={inputCls} />
+              {duplicateSize && <span className="block text-xs text-red-600 mt-1">That size already exists. Pick it from the list instead.</span>}
+            </Field>
+          )}
+
+          {shrink && (
+            <>
+              <Field label="Weight (kg)">
+                <input autoFocus type="number" min="0" step="any" value={form.weight} onChange={set('weight')} placeholder="e.g. 20.8" className={inputCls} />
+              </Field>
+              <Field label="Roll type">
+                <select value={form.rollType} onChange={set('rollType')} className={inputCls}>
+                  <option>Single</option>
+                  <option>Double</option>
+                </select>
+              </Field>
+            </>
+          )}
+
+          <Field label={shrink ? 'Number of rolls' : 'Quantity to add'}>
+            <input type="number" min="1" step="1" value={form.quantity} onChange={set('quantity')} placeholder="How many?" className={inputCls} />
+          </Field>
+
+          <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 border border-blue-100 space-y-1">
+            <p>{shrink ? 'Price per roll' : 'Price per unit'}: <strong>{formatNaira(unitPrice)}</strong> <span className="text-blue-600">(from settings)</span></p>
+            {existing && qty >= 1 && <p>Stock after: <strong>{(existing.stock || 0) + qty}</strong></p>}
+          </div>
+        </div>
+
+        <Footer>
+          {canChoose && <button type="button" onClick={() => setTarget(null)} className={btnGhost}>Back</button>}
+          <button type="button" onClick={onClose} className={btnGhost}>Cancel</button>
+          <button type="submit" disabled={!valid} className={btnPrimary}>Save goods</button>
+        </Footer>
+      </form>
+    </Modal>
+  );
+}
+
+/* ---------------- Edit ---------------- */
+
+function EditModal({ productId, variantIds, onClose, onDone }) {
+  const { products, updateVariant, deleteVariant } = useProducts();
+  const product = products.find((p) => p.id === productId);
+  const [draft, setDraft] = useState({});
+
+  if (!product) return null;
+  const rows = product.variants.filter((v) => variantIds.includes(v.id));
+  const shrink = isShrink(product);
+
+  const val = (v, f) => draft[v.id]?.[f] ?? String(f === 'stock' ? v.stock || 0 : getUnitPrice(product, v));
+  const change = (v, f) => (e) => setDraft((d) => ({ ...d, [v.id]: { ...d[v.id], [f]: e.target.value } }));
+
+  const save = (e) => {
+    e.preventDefault();
+    rows.forEach((v) => {
+      const patch = {};
+      if (draft[v.id]?.stock !== undefined) patch.stock = Math.max(0, parseInt(draft[v.id].stock, 10) || 0);
+      if (!shrink && draft[v.id]?.price !== undefined) patch.pricePerPack = Math.max(0, parseFloat(draft[v.id].price) || 0);
+      if (Object.keys(patch).length) updateVariant(product.id, v.id, patch);
+    });
+    onDone(`Saved changes to ${product.name}.`);
+  };
+
+  const remove = (v) => {
+    if (window.confirm(`Remove ${getVariantLabel(product, v)}? This can't be undone.`)) {
+      deleteVariant(product.id, v.id);
+      if (rows.length === 1) onClose();
+    }
+  };
+
+  return (
+    <Modal title={`Edit · ${product.name}`} onClose={onClose}>
+      <form onSubmit={save}>
+        <div className="p-6 space-y-3">
+          {shrink && <p className="text-xs text-gray-500">Roll prices follow the per-kg rate, so only stock is editable here.</p>}
+          {rows.map((v) => (
+            <div key={v.id} className="border border-gray-200 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-800">{getVariantLabel(product, v)}</span>
+                <button
+                  type="button"
+                  onClick={() => remove(v)}
+                  disabled={product.variants.length <= 1}
+                  className="text-xs text-red-500 hover:text-red-700 disabled:text-gray-300 disabled:cursor-not-allowed"
+                >
+                  Remove
+                </button>
+              </div>
+              <div className={`grid gap-3 ${shrink ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                <Field label="Stock">
+                  <input type="number" min="0" value={val(v, 'stock')} onChange={change(v, 'stock')} className={inputCls} />
+                </Field>
+                {!shrink && (
+                  <Field label="Price (₦)">
+                    <input type="number" min="0" step="any" value={val(v, 'price')} onChange={change(v, 'price')} className={inputCls} />
+                  </Field>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <Footer>
+          <button type="button" onClick={onClose} className={btnGhost}>Cancel</button>
+          <button type="submit" className={btnPrimary}>Save changes</button>
+        </Footer>
+      </form>
+    </Modal>
   );
 }
