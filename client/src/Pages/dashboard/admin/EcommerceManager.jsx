@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useProducts } from '../../../context/ProductContext';
 import { useSettings } from '../../../context/SettingsContext';
-import { LOW_STOCK_THRESHOLD } from '../../../config';
 import {
   CATEGORIES, formatNaira, getPriceDisplay, getUnitPrice, getVariantLabel, isShrink, stockColor,
 } from '../../../utils/products';
